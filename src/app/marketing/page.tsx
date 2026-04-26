@@ -3,6 +3,7 @@ import { ChannelPerformance } from "@/modules/marketing/components/channel-perfo
 import { CampaignList } from "@/modules/marketing/components/campaign-list";
 import { Button } from "@/components/ui/button";
 import { Plus, Target } from "lucide-react";
+import Link from "next/link";
 
 export default function MarketingPage() {
   return (

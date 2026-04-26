@@ -16,13 +16,17 @@ export default function OperationsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <MapPin className="mr-2 h-4 w-4" />
-            Live Map
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/operations/map">
+              <MapPin className="mr-2 h-4 w-4" />
+              Live Map
+            </Link>
           </Button>
-          <Button size="sm">
-            <Truck className="mr-2 h-4 w-4" />
-            Dispatch
+          <Button size="sm" asChild>
+            <Link href="/operations/dispatch">
+              <Truck className="mr-2 h-4 w-4" />
+              Dispatch
+            </Link>
           </Button>
         </div>
       </div>
@@ -55,12 +59,6 @@ export default function OperationsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <DeliveryEfficiency />
-        <ResourceUtilization />
-      </div>
-    </div>
-  );
-}:grid-cols-2 lg:grid-cols-7">
         <DeliveryEfficiency />
         <ResourceUtilization />
       </div>

@@ -2,6 +2,7 @@
 
 import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,14 +17,7 @@ export function Header() {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
       <div className="flex w-full max-w-sm items-center space-x-2">
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search across modules..."
-            className="w-full pl-8 focus-visible:ring-primary"
-          />
-        </div>
+        <GlobalSearch />
       </div>
 
       <div className="flex items-center space-x-4">
@@ -44,6 +38,14 @@ export function Header() {
             <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link href="/billing">Billing</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive" asChild><Link href="/api/auth/signout">Log out</Link></DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+}ink></DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" asChild><Link href="/api/auth/signout">Log out</Link></DropdownMenuItem>
           </DropdownMenuContent>

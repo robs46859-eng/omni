@@ -16,13 +16,17 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            Sync Inventory
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/inventory/sync">
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Sync Inventory
+            </Link>
           </Button>
-          <Button size="sm">
-            <PackagePlus className="mr-2 h-4 w-4" />
-            Restock
+          <Button size="sm" asChild>
+            <Link href="/inventory/restock">
+              <PackagePlus className="mr-2 h-4 w-4" />
+              Restock
+            </Link>
           </Button>
         </div>
       </div>
@@ -55,12 +59,6 @@ export default function InventoryPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <StockLevelChart />
-        <SupplierList />
-      </div>
-    </div>
-  );
-}gap-4 md:grid-cols-2 lg:grid-cols-7">
         <StockLevelChart />
         <SupplierList />
       </div>

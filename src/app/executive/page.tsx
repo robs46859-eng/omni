@@ -1,6 +1,7 @@
 import { KPICard } from "@/modules/executive/components/kpi-card";
 import { ModuleStatus } from "@/modules/executive/components/module-status";
 import { RecentAlerts } from "@/modules/executive/components/recent-alerts";
+import { ActivityFeed } from "@/components/shared/activity-feed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ExecutivePage() {
@@ -41,14 +42,9 @@ export default function ExecutivePage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>System Performance Trends</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-md">
-            <span className="text-muted-foreground">Recharts Visualization Placeholder</span>
-          </CardContent>
-        </Card>
+        <div className="col-span-4">
+          <ActivityFeed />
+        </div>
         
         <RecentAlerts />
       </div>

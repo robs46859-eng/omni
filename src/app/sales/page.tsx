@@ -16,13 +16,17 @@ export default function SalesPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/sales/export">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Link>
           </Button>
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            New Transaction
+          <Button size="sm" asChild>
+            <Link href="/sales/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Transaction
+            </Link>
           </Button>
         </div>
       </div>
@@ -55,12 +59,6 @@ export default function SalesPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <RevenueChart />
-        <RecentTransactions />
-      </div>
-    </div>
-  );
-}-cols-2 lg:grid-cols-7">
         <RevenueChart />
         <RecentTransactions />
       </div>

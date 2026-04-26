@@ -3,6 +3,7 @@ import { SegmentDistribution } from "@/modules/customers/components/segment-dist
 import { CustomerList } from "@/modules/customers/components/customer-list";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Mail } from "lucide-react";
+import Link from "next/link";
 
 export default function CustomersPage() {
   return (

@@ -19,8 +19,24 @@ model User {
   emailVerified DateTime?
   image         String?
   role          UserRole  @default(VIEWER)
+  
+  // Stripe Integration
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+
+  // Upsell: Instant Landing Page Builder
+  hasUsedBuilder         Boolean   @default(false)
+  lastGeneratedHtml      String?   @db.Text
+
   accounts      Account[]
   sessions      Session[]
+  alerts        OpportunityAlert[]
+  savedOpportunities SavedOpportunity[]
+  segmentComparisons SegmentComparison[]
+  trackingList  UserTrackingList[]
+  pitchRequests PitchRequest[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -241,4 +257,358 @@ model Resource {
   status        String      // active, inactive, maintenance
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+// Phase 2: Central Nervous System (Data Ingestion)
+enum DataSourceType {
+  API
+  CSV
+  WEBHOOK
+  MANUAL
+}
+
+model DataSource {
+  id               String         @id @default(cuid())
+  name             String
+  type             DataSourceType
+  connectionConfig Json           // JSON structure for API keys, URLs, or mapping
+  status           String         @default("inactive") // active, inactive, error
+  lastSync         DateTime?
+  recordCount      Int            @default(0)
+  metricValues     MetricValue[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Location {
+  id           String        @id @default(cuid())
+  name         String
+  region       String        // e.g., North, South, Global
+  metadata     Json?         // Lat/Long, address, etc.
+  metricValues MetricValue[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model MetricDefinition {
+  id              String        @id @default(cuid())
+  name            String
+  category        String        // e.g., Financial, Operational
+  unit            String        // e.g., USD, Units, %
+  aggregationType String        // SUM, AVG, MIN, MAX
+  metricValues    MetricValue[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model MetricValue {
+  id                 String           @id @default(cuid())
+  value              Float
+  timestamp          DateTime
+  locationId         String
+  metricDefinitionId String
+  dataSourceId       String
+  
+  location           Location         @relation(fields: [locationId], references: [id])
+  metricDefinition   MetricDefinition @relation(fields: [metricDefinitionId], references: [id])
+  dataSource         DataSource       @relation(fields: [dataSourceId], references: [id])
+
+  @@index([metricDefinitionId, locationId, timestamp])
+}
+
+// Phase 3: Workflow Architect
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum NodeType {
+  TRIGGER
+  ACTION
+  CONDITION
+  AI_STEP
+  SUBWORKFLOW
+}
+
+model Workflow {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  status      WorkflowStatus @default(DRAFT)
+  orgId       String?
+  nodes       WorkflowNode[]
+  edges       WorkflowEdge[]
+  runs        WorkflowRun[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model WorkflowNode {
+  id         String   @id @default(cuid())
+  workflowId String
+  type       NodeType
+  label      String
+  config     Json
+  positionX  Float
+  positionY  Float
+
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model WorkflowEdge {
+  id             String  @id @default(cuid())
+  workflowId     String
+  sourceNodeId   String
+  targetNodeId   String
+  conditionLabel String?
+
+  workflow       Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model WorkflowRun {
+  id          String   @id @default(cuid())
+  workflowId  String
+  status      String   // running, completed, failed
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  log         Json?
+
+  workflow    Workflow @relation(fields: [workflowId], references: [id])
+}
+
+// Phase 4: Digital IT Girl (Predictive Niche Engine)
+model DomainOpportunity {
+  id                 String             @id @default(cuid())
+  domain             String             @unique
+  tld                String
+  estimatedValue     Float
+  category           String
+  trendScore         Float              // 0-100
+  availabilityStatus String             // AVAILABLE, TAKEN, AUCTION
+  firstSeen          DateTime           @default(now())
+  metadata           Json?
+  savedBy            SavedOpportunity[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model NicheSignal {
+  id             String             @id @default(cuid())
+  keyword        String
+  category       String             // DOMAIN, PRODUCT, TREND
+  signalStrength Float              // 0-100
+  sourceType     String
+  detectedAt     DateTime           @default(now())
+  context        String?            @db.Text
+  savedBy        SavedOpportunity[]
+  createdAt      DateTime           @default(now())
+}
+
+model OpportunityAlert {
+  id        String  @id @default(cuid())
+  userId    String
+  type      String  // KEYWORD_TREND, DOMAIN_CATEGORY
+  config    Json
+  isActive  Boolean @default(true)
+  user      User    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model SavedOpportunity {
+  id                  String             @id @default(cuid())
+  userId              String
+  domainOpportunityId String?
+  nicheSignalId       String?
+  notes               String?            @db.Text
+  status              String             @default("WATCHING") // WATCHING, ACQUIRED, PASSED
+  
+  user                User               @relation(fields: [userId], references: [id])
+  domain              DomainOpportunity? @relation(fields: [domainOpportunityId], references: [id])
+  signal              NicheSignal?       @relation(fields: [nicheSignalId], references: [id])
+  createdAt           DateTime           @default(now())
+}
+
+// Phase 5: NicheMarket Explorer
+enum SegmentCategory {
+  MEDIA
+  NON_MEDIA
+  HYBRID
+}
+
+model AudienceSegment {
+  id                  String            @id @default(cuid())
+  name                String
+  category            SegmentCategory
+  estimatedSize       Int
+  demographics        Json              // Age distribution, gender split, income, etc.
+  psychographics      Json              // Values, motivations, pain points
+  consumptionPatterns Json              // Media diet, spending categories, brand affinities
+  platformPresence    Json              // Estimated presence % on TikTok, Reddit, etc.
+  monetizationPotential Float           // 0-100
+  growthRate          Float             // Percentage
+  analyses            SegmentAnalysis[]
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+model SegmentAnalysis {
+  id           String          @id @default(cuid())
+  segmentId    String
+  analysisType String          // MONETIZATION_PLAYBOOK, MARKET_FIT, etc.
+  content      Json
+  generatedAt  DateTime        @default(now())
+  
+  segment      AudienceSegment @relation(fields: [segmentId], references: [id])
+}
+
+model SegmentComparison {
+  id         String   @id @default(cuid())
+  name       String
+  segmentIds String[] // Array of AudienceSegment IDs
+  createdBy  String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [createdBy], references: [id])
+}
+
+// Phase 6: Public Beta (Software Tracker)
+model TrackedSoftware {
+  id              String             @id @default(cuid())
+  name            String
+  vendor          String
+  category        String
+  currentVersion  String?
+  latestCheckAt   DateTime?
+  repoUrl         String?
+  websiteUrl      String?
+  iconUrl         String?
+  versions        VersionEntry[]
+  sentimentSnapshots SentimentSnapshot[]
+  trackedBy       UserTrackingList[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+enum ReleaseType {
+  MAJOR
+  MINOR
+  PATCH
+  RC
+  BETA
+}
+
+model VersionEntry {
+  id                 String             @id @default(cuid())
+  softwareId         String
+  version            String
+  releaseDate        DateTime
+  releaseType        ReleaseType
+  changelogSummary   String?            @db.Text
+  breakingChanges    Boolean            @default(false)
+  compatibilityNotes Json?              // OS, Runtimes, Browsers
+  sentimentSnapshots SentimentSnapshot[]
+  
+  software           TrackedSoftware    @relation(fields: [softwareId], references: [id])
+  createdAt          DateTime           @default(now())
+}
+
+model SentimentSnapshot {
+  id             String          @id @default(cuid())
+  softwareId     String
+  versionEntryId String?
+  overallScore   Float           // 0-100
+  sampleSize     Int
+  positiveThemes Json            // Array of strings
+  negativeThemes Json            // Array of strings
+  capturedAt     DateTime        @default(now())
+  
+  software       TrackedSoftware @relation(fields: [softwareId], references: [id])
+  version        VersionEntry?   @relation(fields: [versionEntryId], references: [id])
+}
+
+enum NotificationTrigger {
+  ALL
+  MAJOR
+  BREAKING
+}
+
+model UserTrackingList {
+  id          String              @id @default(cuid())
+  userId      String
+  softwareId  String
+  notifyOn    NotificationTrigger @default(MAJOR)
+  
+  user        User                @relation(fields: [userId], references: [id])
+  software    TrackedSoftware     @relation(fields: [softwareId], references: [id])
+  createdAt   DateTime            @default(now())
+
+  @@unique([userId, softwareId])
+}
+
+// Phase 7: AutoPitch (Industry Automation Guide)
+model PitchRequest {
+  id             String           @id @default(cuid())
+  userId         String
+  targetIndustry String
+  targetRole     String
+  companySize    String
+  painPoints     Json
+  generatedPitch GeneratedPitch?
+  user           User             @relation(fields: [userId], references: [id])
+  createdAt      DateTime         @default(now())
+}
+
+model GeneratedPitch {
+  id              String       @id @default(cuid())
+  pitchRequestId  String       @unique
+  pitchContent    Json
+  toneProfile     String
+  estimatedSavings Json
+  status          String       @default("DRAFT") // DRAFT, REFINED, EXPORTED
+  revisionHistory Json?        // Array of previous contents
+  
+  request         PitchRequest @relation(fields: [pitchRequestId], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model IndustryProfile {
+  id                     String   @id @default(cuid())
+  industry               String   @unique
+  commonRoles            Json
+  typicalPainPoints      Json
+  automationOpportunities Json
+  benchmarkData          Json
+  createdAt              DateTime @default(now())
+}
+
+// Global Intelligence Hub (The "Executive War Room")
+model IntelligenceSignal {
+  id          String   @id @default(cuid())
+  source      String
+  content     String   @db.Text
+  impactLevel String   // LOW, MEDIUM, HIGH, CRITICAL
+  category    String   // REGULATORY, COMPETITOR, MACRO
+  metadata    Json?
+  correlations ImpactCorrelation[]
+  detectedAt  DateTime @default(now())
+}
+
+model Competitor {
+  id            String   @id @default(cuid())
+  name          String
+  website       String?
+  trackedAssets Json?    // URLs to track for changes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ImpactCorrelation {
+  id                 String             @id @default(cuid())
+  signalId           String
+  internalMetricId   String?            // Link to a MetricValue or KPI
+  reasoning          String?            @db.Text
+  confidence         Float
+  
+  signal             IntelligenceSignal @relation(fields: [signalId], references: [id])
 }
