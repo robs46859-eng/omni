@@ -4,6 +4,7 @@ import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/layout/global-search";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,17 +36,9 @@ export function Header() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link href="/billing">Billing</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive" asChild><Link href="/api/auth/signout">Log out</Link></DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </header>
-  );
-}ink></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/settings?tab=profile">Profile</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/settings?tab=billing">Billing</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" asChild><Link href="/api/auth/signout">Log out</Link></DropdownMenuItem>
           </DropdownMenuContent>

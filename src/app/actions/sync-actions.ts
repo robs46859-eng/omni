@@ -3,8 +3,10 @@
 import { addSyncJob } from "@/lib/core/queue";
 import { prisma } from "@/lib/core/db";
 import { revalidatePath } from "next/cache";
+import { ensureAdmin } from "@/lib/core/auth-utils";
 
 export async function triggerManualSync(dataSourceId: string) {
+  await ensureAdmin();
   try {
     const source = await prisma.dataSource.findUnique({
       where: { id: dataSourceId },

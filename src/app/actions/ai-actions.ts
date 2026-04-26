@@ -1,10 +1,10 @@
 "use server";
 
 import { generateInsight } from "@/lib/core/ai";
+import { ensureAdmin } from "@/lib/core/auth-utils";
 
 export async function askOmniScale(prompt: string) {
-  // In a real app, we might query the DB here first to get context
-  // but for now, we'll just pass the prompt to the AI.
+  await ensureAdmin();
   const insight = await generateInsight(prompt);
   return insight;
 }

@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { AIAssistant } from "@/components/shared/ai-assistant";
 import { AuthProvider } from "@/components/shared/auth-provider";
 import { cn } from "@/lib/utils";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "OmniScale | Unified Analytics Platform",
@@ -21,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={cn(inter.className, "bg-background text-foreground overflow-hidden")}>
+      <body className={cn("bg-background text-foreground overflow-hidden")}>
         <AuthProvider>
           <div className="flex h-screen w-screen overflow-hidden">
             <Sidebar />

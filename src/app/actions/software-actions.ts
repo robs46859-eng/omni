@@ -1,8 +1,10 @@
 "use server";
 
 import { ai } from "@/lib/core/ai";
+import { ensureAdmin } from "@/lib/core/auth-utils";
 
 export async function generateSoftwareBrief(softwareData: any) {
+  await ensureAdmin();
   const prompt = `You are a technical software analyst. Given this software's recent version history and sentiment data: ${JSON.stringify(softwareData)}. 
   Generate a briefing as JSON: 
   {

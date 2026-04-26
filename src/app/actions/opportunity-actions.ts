@@ -2,8 +2,10 @@
 
 import { generateInsight } from "@/lib/core/ai";
 import { ai } from "@/lib/core/ai";
+import { ensureAdmin } from "@/lib/core/auth-utils";
 
 export async function analyzeOpportunity(data: any) {
+  await ensureAdmin();
   const prompt = `You are a digital business strategist specializing in domain valuation, niche product-market fit, and emerging tech trends. 
   Analyze this opportunity: ${JSON.stringify(data)}. 
   Return JSON with: executiveSummary, marketAnalysis (TAM, competition, barriers), monetizationStrategies (array of 3), riskFactors, actionPlan (array of prioritized next steps with estimated effort), and confidenceScore (0-100).`;

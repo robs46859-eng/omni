@@ -1,8 +1,10 @@
 "use server";
 
 import { ai } from "@/lib/core/ai";
+import { ensureAdmin } from "@/lib/core/auth-utils";
 
 export async function generateSegmentPlaybook(segmentData: any) {
+  await ensureAdmin();
   const prompt = `You are a niche market research analyst. Given this audience segment data: ${JSON.stringify(segmentData)}. 
   Generate a monetization playbook as JSON: 
   {

@@ -69,7 +69,7 @@ export function Sidebar() {
   const { data: session } = useSession();
   const { isOpen, toggle } = useSidebarStore();
   
-  const userRole = session?.user?.role || "VIEWER";
+  const userRole = (session?.user as any)?.role || "VIEWER";
   const isAdmin = userRole === "ADMIN";
 
   return (
@@ -205,7 +205,7 @@ export function Sidebar() {
 
       <div className="border-t p-2">
         <Link
-          href="/settings"
+          href="/dashboard/settings"
           className={cn(
             "flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground",
             !isOpen && "justify-center"
