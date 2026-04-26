@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(VIEWER)
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Executive Module Models
+model KPI {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Total Revenue"
+  value       Float
+  previousValue Float?
+  unit        String?  // e.g., "$", "%"
+  trend       String?  // e.g., "up", "down", "neutral"
+  module      String   // Which module this belongs to
+  updatedAt   DateTime @updatedAt
+}
+
+model ModuleSnapshot {
+  id          String   @id @default(cuid())
+  module      String   // executive, sales, inventory, etc.
+  status      String   // healthy, warning, critical
+  metrics     Json     // Dynamic key-value pairs for the snapshot
+  lastSync    DateTime @default(now())
+}
+
+model SystemAlert {
+  id          String   @id @default(cuid())
+  title       String
+  message     String
+  severity    String   // low, medium, high, critical
+  isRead      Boolean  @default(false)
+  module      String?
+  createdAt   DateTime @default(now())
+}
+
+// Sales & Revenue Module Models
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  sku         String      @unique
+  category    String
+  price       Float
+  cost        Float
+  stock       Int
+  saleItems   SaleItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Transaction {
+  id            String      @id @default(cuid())
+  customerName  String?
+  totalAmount   Float
+  taxAmount     Float
+  discount      Float       @default(0)
+  status        String      // completed, pending, cancelled
+  items         SaleItem[]
+  createdAt     DateTime    @default(now())
+}
+
+model SaleItem {
+  id            String      @id @default(cuid())
+  transactionId String
+  productId     String
+  quantity      Int
+  priceAtSale   Float
+
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  product       Product     @relation(fields: [productId], references: [id])
+}
+
+// Inventory & Supply Chain Module Models
+model Supplier {
+  id              String          @id @default(cuid())
+  name            String
+  contactName     String?
+  email           String?
+  phone           String?
+  rating          Float           @default(5.0)
+  purchaseOrders  PurchaseOrder[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model PurchaseOrder {
+  id            String      @id @default(cuid())
+  supplierId    String
+  status        String      // pending, shipped, received, cancelled
+  totalAmount   Float
+  expectedDate  DateTime?
+  receivedDate  DateTime?
+  
+  supplier      Supplier    @relation(fields: [supplierId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Customer Insights Module Models
+model Customer {
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  totalSpent    Float       @default(0)
+  lastPurchase  DateTime?
+  segment       String?     // VIP, Regular, At-Risk
+  feedback      Feedback[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Feedback {
+  id            String      @id @default(cuid())
+  customerId    String
+  rating        Int
+  comment       String?
+  sentiment     String?     // positive, neutral, negative
+  
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  createdAt     DateTime    @default(now())
+}
+
+// Marketing Performance Module Models
+model Campaign {
+  id            String      @id @default(cuid())
+  name          String
+  type          String      // email, social, search, display
+  status        String      // active, paused, completed
+  budget        Float
+  spent         Float       @default(0)
+  leads         Lead[]
+  startDate     DateTime
+  endDate       DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Lead {
+  id            String      @id @default(cuid())
+  campaignId    String?
+  email         String
+  source        String      // organic, referral, paid
+  status        String      // new, qualified, converted, lost
+  value         Float?      // estimated value
+  
+  campaign      Campaign?   @relation(fields: [campaignId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Operations & Logistics Module Models
+model Vehicle {
+  id            String      @id @default(cuid())
+  plateNumber   String      @unique
+  model         String
+  type          String      // truck, van, bike
+  status        String      // available, on-route, maintenance, retired
+  lastService   DateTime?
+  routes        Route[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Route {
+  id            String      @id @default(cuid())
+  vehicleId     String
+  driverName    String
+  origin        String
+  destination   String
+  distance      Float
+  status        String      // planned, in-progress, completed, delayed
+  departureTime DateTime?
+  arrivalTime   DateTime?
+  
+  vehicle       Vehicle     @relation(fields: [vehicleId], references: [id])
+  createdAt     DateTime    @default(now())
+}
+
+model Resource {
+  id            String      @id @default(cuid())
+  name          String
+  type          String      // equipment, facility, personnel
+  capacity      Float?
+  usage         Float       @default(0)
+  status        String      // active, inactive, maintenance
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
